@@ -142,7 +142,7 @@ public class ChooseAreaFragment extends Fragment {
         } else {
             Log.d("queryCites", "size<0");
             int provinceCode = selectProvince.getProvinceCode();
-            String address = Constant.WEATHER_URL_BASIC + provinceCode;
+            String address = Constant.PROVINCE_URL_BASIC + provinceCode;
             queryFromServer(address, "city");
         }
     }

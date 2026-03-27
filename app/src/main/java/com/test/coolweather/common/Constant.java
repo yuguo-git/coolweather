@@ -7,9 +7,9 @@ package com.test.coolweather.common;
 
 public class Constant {
     public final static String WEATHER_KEY = "90070d433b8446bba835ff7e97d6d866";
-    public final static String WEATHER_URL_BASIC = "http://guolin.tech/api/china/";
+    public final static String PROVINCE_URL_BASIC = "http://guolin.tech/api/china/";
 
-    public final static String PROVINCE_URL_BASIC = "http://guolin.tech/api/weather";
+    public final static String WEATHER_URL_BASIC = "http://guolin.tech/api/weather";
 
     public final static String BING_PIC_URL = "http://guolin.tech/api/bing_pic";
 

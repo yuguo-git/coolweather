@@ -8,10 +8,10 @@ import com.google.gson.annotations.SerializedName;
  */
 
 public class Basic {
-//    城市id
+//    天气id
 
     @SerializedName("cid")
-    public String cityId;
+    public String weatherId;
 //    城市名称
 
     @SerializedName("location")

@@ -3,4 +3,8 @@
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="back_director">←</string>
+    <string name="forecast">预报</string>
+    <string name="aqi">AQI指数</string>
+    <string name="pm25">PM2.5指数</string>
+    <string name="suggestion">生活建议</string>
 </resources>

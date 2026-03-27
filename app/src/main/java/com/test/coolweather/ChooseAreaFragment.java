@@ -1,6 +1,7 @@
 package com.test.coolweather;
 
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -19,6 +20,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.test.coolweather.common.Constant;
 import com.test.coolweather.db.City;
 import com.test.coolweather.db.County;
 import com.test.coolweather.db.Province;
@@ -71,6 +73,12 @@ public class ChooseAreaFragment extends Fragment {
                 } else if (currentLevel == LEVEL_CITY) {
                     selectCity = cityList.get(position);
                     queryCounties();
+                } else if (currentLevel == LEVEL_COUNTY) {
+                    Intent intent = new Intent(getActivity(), WeatherActivity.class);
+                    String weatherId = countyList.get(position).getWeatherId();
+                    intent.putExtra("weather_id", weatherId);
+                    startActivity(intent);
+                    getActivity().finish();
                 }
             }
         });
@@ -90,7 +98,7 @@ public class ChooseAreaFragment extends Fragment {
     private void queryCounties() {
         titleText.setText(selectCity.getCityName());
         backButton.setVisibility(View.VISIBLE);
-        countyList = DataSupport.where("cityId = ?", String.valueOf
+        countyList = DataSupport.where("cityid = ?", String.valueOf
                 (selectCity.getId())).find(County.class);
         if (countyList.size() > 0) {
             dataList.clear();
@@ -103,7 +111,7 @@ public class ChooseAreaFragment extends Fragment {
         } else {
             int provinceCode = selectProvince.getProvinceCode();
             int cityCode = selectCity.getCityCode();
-            String address = "http://guolin.tech/api/china/" + provinceCode + "/" + cityCode;
+            String address = Constant.PROVINCE_URL_BASIC + provinceCode + "/" + cityCode;
             queryFromServer(address, "county");
         }
     }
@@ -112,7 +120,7 @@ public class ChooseAreaFragment extends Fragment {
         Log.d("queryCites", "queryCites: ");
         titleText.setText(selectProvince.getProvinceName());
         backButton.setVisibility(View.VISIBLE);
-        cityList = DataSupport.where("provinceId = ?", String.valueOf
+        cityList = DataSupport.where("provinceid = ?", String.valueOf
                 (selectProvince.getId())).find(City.class);
         if (cityList.size() > 0) {
             Log.d("queryCites", "size>0");
@@ -126,13 +134,13 @@ public class ChooseAreaFragment extends Fragment {
         } else {
             Log.d("queryCites", "size<0");
             int provinceCode = selectProvince.getProvinceCode();
-            String address = "http://guolin.tech/api/china/" + provinceCode;
+            String address = Constant.WEATHER_URL_BASIC + provinceCode;
             queryFromServer(address, "city");
         }
     }
 
     private void queryProvinces() {
-        titleText.setText("中国");
+        titleText.setText(Constant.COUNTRY);
         backButton.setVisibility(View.GONE);
         provinceList = DataSupport.findAll(Province.class);
         if (provinceList.size() > 0) {
@@ -144,7 +152,7 @@ public class ChooseAreaFragment extends Fragment {
             listView.setSelection(0);
             currentLevel = LEVEL_PROVINCE;
         } else {
-            String address = "http://guolin.tech/api/china";
+            String address = Constant.PROVINCE_URL_BASIC;
             queryFromServer(address, "province");
         }
     }
@@ -159,7 +167,7 @@ public class ChooseAreaFragment extends Fragment {
                     @Override
                     public void run() {
                         closeProgressDialog();
-                        Toast.makeText(getContext(), "加载失败", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), Constant.FAILED_LOAD, Toast.LENGTH_SHORT).show();
                     }
                 });
             }
@@ -199,7 +207,7 @@ public class ChooseAreaFragment extends Fragment {
     private void showProgressDialog() {
         if (progressDialog == null) {
             progressDialog = new ProgressDialog(getActivity());
-            progressDialog.setMessage("正在加载...");
+            progressDialog.setMessage(Constant.LOADING);
             progressDialog.setCanceledOnTouchOutside(false);
         }
         progressDialog.show();

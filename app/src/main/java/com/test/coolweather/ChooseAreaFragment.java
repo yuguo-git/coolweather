@@ -2,14 +2,17 @@ package com.test.coolweather;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -20,10 +23,12 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.gson.Gson;
 import com.test.coolweather.common.Constant;
 import com.test.coolweather.db.City;
 import com.test.coolweather.db.County;
 import com.test.coolweather.db.Province;
+import com.test.coolweather.gson.Weather;
 import com.test.coolweather.util.HttpUtil;
 import com.test.coolweather.util.Utility;
 
@@ -43,6 +48,7 @@ import okhttp3.Response;
  * Use the {@link ChooseAreaFragment
  */
 public class ChooseAreaFragment extends Fragment {
+    private static final String TAG = ChooseAreaFragment.class.getSimpleName(); 
 
     private static final int LEVEL_PROVINCE = 0;
     private static final int LEVEL_CITY = 1;
@@ -53,25 +59,38 @@ public class ChooseAreaFragment extends Fragment {
     private ImageButton backButton;
     private ListView listView;
     private ArrayAdapter<String> adapter;
-    private List<String> dataList = new ArrayList<>();
+    private final List<String> dataList = new ArrayList<>();
     private List<Province> provinceList;
     private List<City> cityList;
     private List<County> countyList;
     private Province selectProvince;
     private City selectCity;
     private int currentLevel;
+    private final Gson gson = new Gson();
+    private SharedPreferences preferences;
 
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+
         super.onActivityCreated(savedInstanceState);
+
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Log.d(TAG, "onItemClick: 1");
                 if (currentLevel == LEVEL_PROVINCE) {
                     selectProvince = provinceList.get(position);
+                    SharedPreferences.Editor edit = preferences.edit();
+                    String provinceJson = gson.toJson(selectProvince);
+                    edit.putString("selectProvince" , provinceJson);
+                    edit.apply();
                     queryCites();
                 } else if (currentLevel == LEVEL_CITY) {
                     selectCity = cityList.get(position);
+                    SharedPreferences.Editor edit = preferences.edit();
+                    String cityJson = gson.toJson(selectCity);
+                    edit.putString("selectCity" , cityJson);
+                    edit.apply();
                     queryCounties();
                 } else if (currentLevel == LEVEL_COUNTY) {
                     String weatherId = countyList.get(position).getWeatherId();
@@ -90,6 +109,7 @@ public class ChooseAreaFragment extends Fragment {
                 }
             }
         });
+        Log.e(TAG, "onItemClick 已设置完成");
         backButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -100,7 +120,20 @@ public class ChooseAreaFragment extends Fragment {
                 }
             }
         });
-        queryProvinces();
+
+
+        String cityJson = preferences.getString("selectCity", null);
+        String provinceJson = preferences.getString("selectProvince", null);
+        Log.d(TAG, "onActivityCreated: ");
+        if ( provinceJson != null && cityJson != null) {
+            selectCity = gson.fromJson(cityJson, City.class);
+            selectProvince = gson.fromJson(provinceJson , Province.class);
+            queryCounties();
+        } else {
+            Log.d(TAG, "onActivityCreated: ");
+            queryProvinces();
+        }
+
     }
 
     private void queryCounties() {
@@ -136,7 +169,10 @@ public class ChooseAreaFragment extends Fragment {
             for (City city:cityList) {
                 dataList.add(city.getCityName());
             }
+            //通知 ListView（或 RecyclerView）：
+            // 适配器（Adapter）背后的数据源已经改变了，请重新读取数据并刷新整个列表的显示
             adapter.notifyDataSetChanged();
+            //强制将 ListView 的滚动位置设置到第 0 个 item（即列表的第一项）
             listView.setSelection(0);
             currentLevel = LEVEL_CITY;
         } else {
@@ -157,6 +193,7 @@ public class ChooseAreaFragment extends Fragment {
                 dataList.add(province.getProvinceName());
             }
             adapter.notifyDataSetChanged();
+            Log.d(TAG, "queryProvinces: notifyDataSetChanged 已调用");
             listView.setSelection(0);
             currentLevel = LEVEL_PROVINCE;
         } else {
@@ -166,6 +203,7 @@ public class ChooseAreaFragment extends Fragment {
     }
 
     private void queryFromServer(String address, String type) {
+        showProgressDialog();
         Log.d("begin", "queryFromServer: ");
         HttpUtil.sendOKHttpRequest(address, new Callback() {
             @Override
@@ -237,9 +275,15 @@ public class ChooseAreaFragment extends Fragment {
         titleText = (TextView) view.findViewById(R.id.title_text);
         backButton = (ImageButton) view.findViewById(R.id.back_button);
         listView = (ListView) view.findViewById(R.id.list_view);
-        adapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_list_item_1, dataList);
+        // 检查 ListView 是否可点击
+        listView.setClickable(true);
+        listView.setEnabled(true);
+        Log.d(TAG, "listView.isEnabled() = " + listView.isEnabled());
+        Log.d(TAG, "listView.isClickable() = " + listView.isClickable());
+        adapter = new ArrayAdapter<>(getContext(), R.layout.my_simple_list_item , R.id.text_view , dataList);
         listView.setAdapter(adapter);
 
+        preferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
         return view;
     }
 }

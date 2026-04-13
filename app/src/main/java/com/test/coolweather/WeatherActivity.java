@@ -172,6 +172,7 @@ public class WeatherActivity extends AppCompatActivity {
                         Log.d("1", "run: ");
                         Toast.makeText(WeatherActivity.this, Constant.FAILED_GET_WEATHER,
                                 Toast.LENGTH_SHORT).show();
+                        //刷新事件结束，隐藏刷新进度条
                         swipeRefreshLayout.setRefreshing(false);
                     }
                 });
